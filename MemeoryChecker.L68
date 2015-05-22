@@ -1,0 +1,114 @@
+00000400 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.15.02
+Created On: 5/21/2015 10:16:39 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      : Memory test program
+00000000                             3  * Written by : Paul Kessler
+00000000                             4  * Date       : 
+00000000                             5  * Description: Tests memory for sexiness
+00000000                             6  *-----------------------------------------------------------
+00000000                             7    
+00000000  =00000011                  8  end_test        EQU     $11         *test pattern terminator
+00000000  =00000000                  9  test1           EQU      00         *first test pattern
+00000000  =000000FF                 10  test2           EQU     $FF         *second test pattern
+00000000  =00000055                 11  test3           EQU     $55         *third test pattern
+00000000  =000000AA                 12  test4           EQU     $AA         *fourth test pattern
+00000000                            13  *st_addr         EQU     $2000       *Starting address of test
+00000000                            14  *end_addr        EQU     $6000       *ending address of test
+00000000  =00007000                 15  stack           EQU     $7000       *stack location
+00000000  =0000000A                 16  maxcnt          EQU     10          *maximun number of bad address
+00000000  =00000400                 17  start           EQU     $400
+00000000                            18                  
+00000400                            19                  ORG     start       *start of the program
+00000400  4FF8 7000                 20  BEGIN           LEA     stack, SP   *initialize the stack pointer
+00000404  4200                      21                  CLR.B   D0          *initialize D0
+00000406  4239 000004B2             22                  CLR.B   bad_cnt     *Initialize the bad address counter
+0000040C  45F9 000004AC             23                  LEA     tests,A2    *A2 points to the test patterns
+00000412  47F9 000004B4             24                  LEA     bad_addr,A3 *pointer to bad count storage
+00000418                            25                 
+00000418  43F9 000004D0             26                  LEA     start_addr_msg, A1
+0000041E  103C 000E                 27                  MOVE.B  #14, D0
+00000422  4E4F                      28                  TRAP    #15
+00000424  103C 0004                 29                  MOVE.B  #4, D0
+00000428  4E4F                      30                  TRAP    #15
+0000042A  23C1 000004C8             31                  MOVE.L  D1, st_addr
+00000430  4281                      32                  CLR.L   D1
+00000432                            33                  
+00000432  43F9 000004EB             34                  LEA     end_addr_msg, A1
+00000438  103C 000E                 35                  MOVE.B  #14, D0
+0000043C  4E4F                      36                  TRAP    #15
+0000043E  103C 0004                 37                  MOVE.B  #4, D0
+00000442  4E4F                      38                  TRAP    #15
+00000444  23C1 000004CC             39                  MOVE.L  D1, end_addr
+0000044A  4281                      40                  CLR.L   D1
+0000044C                            41                  
+0000044C  1C1A                      42  TEST_LOOP       MOVE.B  (A2)+, D6
+0000044E  0C06 0011                 43                  CMPI.B  #end_test, D6
+00000452  6700 0020                 44                  BEQ     DONE
+00000456  41F9 000004C8             45                  LEA     st_addr, A0
+0000045C  43F9 000004CC             46                  LEA     end_addr, A1
+00000462  4EB9 00000478             47                  JSR     DO_TEST
+00000468  1E39 000004B2             48                  MOVE.B  bad_cnt, D7
+0000046E  0C07 000A                 49                  CMPI.B  #maxcnt,D7
+00000472  6DD8                      50                  BLT     TEST_LOOP
+00000474  4E72 2700                 51  DONE            STOP    #$2700
+00000478                            52  
+00000478  48A7 4110                 53  DO_TEST         MOVEM.W  A3/D1/D7,-(SP)
+0000047C  1092                      54  CHECK_LOOP      MOVE.B  (A2),(A0)
+0000047E  1210                      55                  MOVE.B  (A0),D1
+00000480  B212                      56                  CMP.B   (A2),D1
+00000482  6600 0006                 57                  BNE     ERROR_BYTE
+00000486  6000 0018                 58                  BRA     NEXT_TEST
+0000048A  36C8                      59  ERROR_BYTE      MOVE.W  A0,(A3)+
+0000048C  5239 000004B2             60                  ADDI.B  #01,bad_cnt
+00000492  1E39 000004B2             61                  MOVE.B  bad_cnt,D7
+00000498  0C07 000A                 62                  CMPI.B  #maxcnt,D7
+0000049C  6C00 0008                 63                  BGE     EXIT
+000004A0  5248                      64  NEXT_TEST       ADDA.W  #01,A0
+000004A2  B2C8                      65                  CMPA.W  A0,A1
+000004A4  6CD6                      66                  BGE     CHECK_LOOP
+000004A6  4C9F 0882                 67  EXIT            MOVEM.W (SP)+,A3/D1/D7
+000004AA  4E75                      68                  RTS
+000004AC                            69                  
+000004AC= 00 FF 55 AA 11            70  tests           DC.B    test1,test2,test3,test4,end_test
+000004B1= 00                        71  padding         DC.B    00
+000004B2                            72  bad_cnt         DS.W    1
+000004B4                            73  bad_addr        DS.W    10
+000004C8= 00000000                  74  st_addr      DC.L    $00000000
+000004CC= 00000000                  75  end_addr        DC.L    $00000000
+000004D0= 45 6E 74 65 72 20 ...     76  Start_addr_msg  DC.B    'Enter a starting address: ',0
+000004EB= 45 6E 74 65 72 20 ...     77  End_addr_msg    DC.B    'Enter an ending address: ',0
+00000505                            78                  END     $400
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+BAD_ADDR            4B4
+BAD_CNT             4B2
+BEGIN               400
+CHECK_LOOP          47C
+DONE                474
+DO_TEST             478
+END_ADDR            4CC
+END_ADDR_MSG        4EB
+END_TEST            11
+ERROR_BYTE          48A
+EXIT                4A6
+MAXCNT              A
+NEXT_TEST           4A0
+PADDING             4B1
+STACK               7000
+START               400
+START_ADDR_MSG      4D0
+ST_ADDR             4C8
+TEST1               0
+TEST2               FF
+TEST3               55
+TEST4               AA
+TESTS               4AC
+TEST_LOOP           44C

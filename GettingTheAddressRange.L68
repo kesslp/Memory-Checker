@@ -1,0 +1,126 @@
+00000400 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.15.02
+Created On: 5/23/2015 12:58:49 AM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :
+00000000                             3  * Written by :
+00000000                             4  * Date       :
+00000000                             5  * Description:
+00000000                             6  *-----------------------------------------------------------
+00000000  =000000FF                  7  mask    EQU         $00FF
+00000000  =0000B000                  8  stack   EQU         $B000
+00000000                             9  
+00000400                            10          ORG         $400
+00000400  4200                      11          CLR.B       D0
+00000402  43F9 00000510             12          LEA         start_addr_msg, A1
+00000408  103C 000E                 13          MOVE.B      #14, D0
+0000040C  4E4F                      14          TRAP        #15
+0000040E  103C 0002                 15          MOVE.B      #2, D0
+00000412  4E4F                      16          TRAP        #15
+00000414  23D1 0000056C             17          MOVE.L      (A1),ascii_val_start
+0000041A                            18          
+0000041A  4FF9 0000B000             19  start   LEA         stack,SP
+00000420  4247                      20          CLR.W       D7
+00000422  43F9 0000056C             21          LEA         ascii_val_start, A1
+00000428  1019                      22          MOVE.B      (A1)+,D0
+0000042A  0240 00FF                 23          ANDI.W      #mask,D0
+0000042E  4EB9 000004EA             24          JSR         strip_ascii
+00000434  E140                      25          ASL.W       #8,D0
+00000436  E940                      26          ASL.W       #4,D0
+00000438  8E40                      27          OR.W        D0,D7
+0000043A  1019                      28          MOVE.B      (A1)+,D0
+0000043C  0240 00FF                 29          ANDI.W      #mask,D0
+00000440  4EB9 000004EA             30          JSR         strip_ascii
+00000446  E140                      31          ASL.W       #8,D0
+00000448  8E40                      32          OR.W        D0,D7
+0000044A  1019                      33          MOVE.B      (A1)+,D0
+0000044C  0240 00FF                 34          ANDI.W      #mask,D0
+00000450  4EB9 000004EA             35          JSR         strip_ascii
+00000456  E940                      36          ASL.W       #4,D0
+00000458  8E40                      37          OR.W        D0,D7
+0000045A  1019                      38          MOVE.B      (A1)+,D0
+0000045C  0240 00FF                 39          ANDI.W      #mask,D0
+00000460  4EB9 000004EA             40          JSR         strip_ascii
+00000466  8E40                      41          OR.W        D0,D7
+00000468  33C7 00000570             42          MOVE.W      D7,st_val
+0000046E                            43              
+0000046E  43F9 0000053B             44          LEA         end_addr_msg, A1
+00000474  103C 000E                 45          MOVE.B      #14, D0
+00000478  4E4F                      46          TRAP        #15
+0000047A  224C                      47          MOVEA.L     A4,A1
+0000047C  103C 0002                 48          MOVE.B      #2, D0
+00000480  4E4F                      49          TRAP        #15
+00000482  23D1 0000056E             50          MOVE.L      (A1),ascii_val_end
+00000488                            51          
+00000488  4247                      52          CLR.W       D7
+0000048A  43F9 0000056E             53          LEA         ascii_val_end, A1
+00000490  1019                      54          MOVE.B      (A1)+,D0
+00000492  0240 00FF                 55          ANDI.W      #mask,D0
+00000496  4EB9 000004EA             56          JSR         strip_ascii
+0000049C  E140                      57          ASL.W       #8,D0
+0000049E  E940                      58          ASL.W       #4,D0
+000004A0  8E40                      59          OR.W        D0,D7
+000004A2  1019                      60          MOVE.B      (A1)+,D0
+000004A4  0240 00FF                 61          ANDI.W      #mask,D0
+000004A8  4EB9 000004EA             62          JSR         strip_ascii
+000004AE  E140                      63          ASL.W       #8,D0
+000004B0  8E40                      64          OR.W        D0,D7
+000004B2  1019                      65          MOVE.B      (A1)+,D0
+000004B4  0240 00FF                 66          ANDI.W      #mask,D0
+000004B8  4EB9 000004EA             67          JSR         strip_ascii
+000004BE  E940                      68          ASL.W       #4,D0
+000004C0  8E40                      69          OR.W        D0,D7
+000004C2  1019                      70          MOVE.B      (A1)+,D0
+000004C4  0240 00FF                 71          ANDI.W      #mask,D0
+000004C8  4EB9 000004EA             72          JSR         strip_ascii
+000004CE  8E40                      73          OR.W        D0,D7
+000004D0  33C7 00000570             74          MOVE.W      D7,end_val
+000004D6                            75          
+000004D6  4280                      76          CLR.L       D0
+000004D8  4281                      77          CLR.L       D1
+000004DA  3039 00000570             78          MOVE.W      st_val,D0
+000004E0  3239 00000570             79          MOVE.W      end_val,D1
+000004E6  FFFF FFFF                 80          SIMHALT
+000004EA                            81  
+000004EA  B03C 0039                 82  strip_ascii CMP.B   #$39,D0 *Is it in range of 0-9?
+000004EE  6F00 001A                 83              BLE     sub30   *It's a number
+000004F2  B03C 0046                 84              CMP.B   #$46,D0 *Is it A...F?
+000004F6  6F00 000A                 85              BLE     sub37   *It's A...F
+000004FA  0400 0057                 86              SUB.B   #$57,D0 *It's a...f
+000004FE  6000 000E                 87              BRA     ret_sa  *Go back
+00000502  0400 0037                 88  sub37       SUB.B   #$37,D0 *Strip 37
+00000506  6000 0006                 89              BRA     ret_sa  *Go back
+0000050A  0400 0030                 90  sub30       SUB.B   #$30,D0 *Strip 30
+0000050E  4E75                      91  ret_sa      RTS             *Go back
+00000510                            92  
+00000510                            93  * Data
+00000510                            94          
+00000510= 45 6E 74 65 72 20 ...     95  start_addr_msg DC.B 'Enter a starting address to disassemble: $', 0
+0000053B= 45 6E 74 65 72 20 ...     96  end_addr_msg   DC.B 'Enter a ending address to stop disassembling: $', 0
+0000056C= 0000                      97  ascii_val_start DC.W    $0000
+0000056E= 0000                      98  ascii_val_end   DC.W    $0000
+00000570                            99  st_val      DS.W    $0000
+00000570                           100  end_val     DS.W    $0000
+00000570                           101              END     $400   
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ASCII_VAL_END       56E
+ASCII_VAL_START     56C
+END_ADDR_MSG        53B
+END_VAL             570
+MASK                FF
+RET_SA              50E
+STACK               B000
+START               41A
+START_ADDR_MSG      510
+STRIP_ASCII         4EA
+ST_VAL              570
+SUB30               50A
+SUB37               502

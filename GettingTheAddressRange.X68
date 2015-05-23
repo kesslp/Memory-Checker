@@ -16,13 +16,6 @@ stack   EQU         $B000
         TRAP        #15
         MOVE.L      (A1),ascii_val_start
         
-        LEA         end_addr_msg, A1
-        MOVE.B      #14, D0
-        TRAP        #15
-        MOVE.B      #2, D0
-        TRAP        #15
-        MOVE.L      (A1),ascii_val_end
-        
 start   LEA         stack,SP
         CLR.W       D7
         LEA         ascii_val_start, A1
@@ -46,12 +39,16 @@ start   LEA         stack,SP
         ANDI.W      #mask,D0
         JSR         strip_ascii
         OR.W        D0,D7
-        MOVE.W      D7,(A1)
-        MOVE.W      (A1),st_val
-        *MOVEA.W     st_val, A1
-        *MOVE.L      (A1),D0
-       
-        LEA         stack,SP
+        MOVE.W      D7,st_val
+            
+        LEA         end_addr_msg, A1
+        MOVE.B      #14, D0
+        TRAP        #15
+        MOVEA.L     A4,A1
+        MOVE.B      #2, D0
+        TRAP        #15
+        MOVE.L      (A1),ascii_val_end
+        
         CLR.W       D7
         LEA         ascii_val_end, A1
         MOVE.B      (A1)+,D0
@@ -74,15 +71,13 @@ start   LEA         stack,SP
         ANDI.W      #mask,D0
         JSR         strip_ascii
         OR.W        D0,D7
-        MOVE.W      D7,(A1)
-        MOVE.W      (A1),end_val
+        MOVE.W      D7,end_val
         
-        MOVEA.W     st_val,A0
-        MOVEA.W     end_val,A1
         CLR.L       D0
         CLR.L       D1
-        MOVE.L      (A0),D0
-        MOVE.L      (A1),D1
+        MOVE.W      st_val,D0
+        MOVE.W      end_val,D1
+        SIMHALT
 
 strip_ascii CMP.B   #$39,D0 *Is it in range of 0-9?
             BLE     sub30   *It's a number
@@ -104,6 +99,7 @@ ascii_val_end   DC.W    $0000
 st_val      DS.W    $0000
 end_val     DS.W    $0000
             END     $400   
+
 
 *~Font name~Courier New~
 *~Font size~10~

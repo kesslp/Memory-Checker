@@ -1,0 +1,372 @@
+00000400 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.15.02
+Created On: 5/23/2015 10:17:13 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :
+00000000                             3  * Written by :
+00000000                             4  * Date       :
+00000000                             5  * Description:
+00000000                             6  *-----------------------------------------------------------
+00000000  =0000000D                  7  CR              EQU $0D
+00000000  =0000000A                  8  LF              EQU $0A
+00000000  =0000000F                  9  add_mask        EQU $0000000F
+00000000  =000000FF                 10  ascii_mask      EQU $00FF
+00000000  =0000B000                 11  stack           EQU $B000
+00000000                            12                  
+00000000                            13  *---- User input address range -----
+00000000                            14  
+00000400                            15                  ORG         $400                        * start of the program
+00000400  4FF9 0000B000             16                  LEA         stack,SP                    * initialize the stack
+00000406  4200                      17                  CLR.B       D0                          * clear D0
+00000408  43F9 00000504             18                  LEA         start_addr_msg, A1          * ask for starting address
+0000040E  103C 000E                 19                  MOVE.B      #14, D0
+00000412  4E4F                      20                  TRAP        #15                         
+00000414  103C 0002                 21                  MOVE.B      #2, D0                      * take in user input as string
+00000418  4E4F                      22                  TRAP        #15
+0000041A  23D1 00000560             23                  MOVE.L      (A1),ascii_val_start        * store ascii address in DC
+00000420  48A7 FFFE                 24                  MOVEM.W     A0-A6/D0-D7,-(SP)           * push registers on the stack
+00000424  4EB9 0000048E             25                  JSR         get_addr                    * strip ascii characters to hex
+0000042A  4C9F 7FFF                 26                  MOVEM.W     (SP)+, A0-A6/D0-D7          * restore registers
+0000042E  33F9 00000564 00000566    27                  MOVE.W      addr_val_temp, st_val       * store address value into st_val
+00000438  3A39 00000566             28                  MOVE.W      st_val, D5                  * check if address is correct
+0000043E  42B9 00000560             29                  CLR.L       ascii_val_start             * clr DC for end address input
+00000444                            30                  
+00000444  43F9 0000052F             31                  LEA         end_addr_msg, A1            * ask for ending address
+0000044A  103C 000E                 32                  MOVE.B      #14, D0
+0000044E  4E4F                      33                  TRAP        #15
+00000450  224C                      34                  MOVEA.L     A4,A1                       * reset address at A1 to get user input
+00000452  103C 0002                 35                  MOVE.B      #2, D0                      * take address as a string
+00000456  4E4F                      36                  TRAP        #15
+00000458  23D1 00000560             37                  MOVE.L      (A1),ascii_val_start        * save in DC
+0000045E  48A7 FFFE                 38                  MOVEM.W     A0-A6/D0-D7,-(SP)           * push registers on the stack
+00000462  4EB9 0000048E             39                  JSR         get_addr                    * strip ascii address into hex
+00000468  4C9F 7FFF                 40                  MOVEM.W     (SP)+, A0-A6/D0-D7          * restore the registers
+0000046C  33F9 00000564 00000568    41                  MOVE.W      addr_val_temp, end_val      * store address in end_val
+00000476  3C39 00000568             42                  MOVE.W      end_val, D6                 * check if result is correct
+0000047C  3A79 00000566             43                  MOVEA.W     st_val,A5                   * store start val in A5
+00000482  3C79 00000568             44                  MOVEA.W     end_val,A6                  * store end val in A6
+00000488  4EB9 0000056A             45                  JSR         ADD_checker                 * Jump to add sub routine
+0000048E                            46  
+0000048E                            47                  
+0000048E                            48  
+0000048E                            49  get_addr                            
+0000048E  4247                      50                  CLR.W       D7                          * We need D7 to be 0
+00000490  43F9 00000560             51                  LEA         ascii_val_start, A1         
+00000496  1019                      52                  MOVE.B      (A1)+,D0
+00000498  0240 00FF                 53                  ANDI.W      #ascii_mask,D0
+0000049C  4EB9 000004DE             54                  JSR         strip_ascii
+000004A2  E140                      55                  ASL.W       #8,D0
+000004A4  E940                      56                  ASL.W       #4,D0
+000004A6  8E40                      57                  OR.W        D0,D7
+000004A8  1019                      58                  MOVE.B      (A1)+,D0
+000004AA  0240 00FF                 59                  ANDI.W      #ascii_mask,D0
+000004AE  4EB9 000004DE             60                  JSR         strip_ascii
+000004B4  E140                      61                  ASL.W       #8,D0
+000004B6  8E40                      62                  OR.W        D0,D7
+000004B8  1019                      63                  MOVE.B      (A1)+,D0
+000004BA  0240 00FF                 64                  ANDI.W      #ascii_mask,D0
+000004BE  4EB9 000004DE             65                  JSR         strip_ascii
+000004C4  E940                      66                  ASL.W       #4,D0
+000004C6  8E40                      67                  OR.W        D0,D7
+000004C8  1019                      68                  MOVE.B      (A1)+,D0
+000004CA  0240 00FF                 69                  ANDI.W      #ascii_mask,D0
+000004CE  4EB9 000004DE             70                  JSR         strip_ascii
+000004D4  8E40                      71                  OR.W        D0,D7
+000004D6  33C7 00000564             72                  MOVE.W      D7,addr_val_temp
+000004DC  4E75                      73                  RTS
+000004DE                            74       
+000004DE                            75                  
+000004DE  B03C 0039                 76  strip_ascii CMP.B   #$39,D0 *Is it in range of 0-9?
+000004E2  6F00 001A                 77              BLE     sub30   *It's a number
+000004E6  B03C 0046                 78              CMP.B   #$46,D0 *Is it A...F?
+000004EA  6F00 000A                 79              BLE     sub37   *It's A...F
+000004EE  0400 0057                 80              SUB.B   #$57,D0 *It's a...f
+000004F2  6000 000E                 81              BRA     ret_sa  *Go back
+000004F6  0400 0037                 82  sub37       SUB.B   #$37,D0 *Strip 37
+000004FA  6000 0006                 83              BRA     ret_sa  *Go back
+000004FE  0400 0030                 84  sub30       SUB.B   #$30,D0 *Strip 30
+00000502  4E75                      85  ret_sa      RTS             *Go back
+00000504                            86  
+00000504                            87  
+00000504                            88  *---- Data ----
+00000504                            89  
+00000504= 45 6E 74 65 72 20 ...     90  start_addr_msg  DC.B    'Enter a starting address to disassemble: $', 0
+0000052F= 45 6E 74 65 72 20 ...     91  end_addr_msg    DC.B    'Enter a ending address to stop disassembling: $', 0
+00000560= 0000                      92  ascii_val_start DC.W    $0000
+00000562= 0000                      93  ascii_val_end   DC.W    $0000
+00000564= 0000                      94  addr_val_temp   DC.W    $0000
+00000566= 0000                      95  st_val          DC.W    $0000
+00000568= 0000                      96  end_val         DC.W    $0000
+0000056A                            97  
+0000056A                            98  *--- Data end ----
+0000056A                            99  
+0000056A                           100  *-----Disassemble ADD Opcodes start------------
+0000056A                           101  
+0000056A                           102  ADD_Checker
+0000056A                           103  *    LEA     addCode,A0
+0000056A                           104      
+0000056A  4287                     105      CLR.L   D7
+0000056C  4281                     106      CLR.L   D1
+0000056E  4280                     107      CLR.L   D0
+00000570                           108      
+00000570  2248                     109      MOVEA.L A0,A1
+00000572                           110      
+00000572  381D                     111      MOVE.W  (A5)+,D4
+00000574  33C4 00000716            112      MOVE.W  D4,addCode
+0000057A  3404                     113      MOVE.W  D4,D2
+0000057C                           114      
+0000057C  E95A                     115      ROL.W   #4,D2
+0000057E                           116      
+0000057E  C4BC 0000000F            117      AND.L   #add_mask,D2
+00000584                           118      
+00000584  1A02                     119      MOVE.B  D2,D5
+00000586                           120      
+00000586                           121  moveOpCode
+00000586  BA3C 0001                122      CMP.B   #1,D5
+0000058A  6600 0006                123      BNE     addOpCode
+0000058E                           124  
+0000058E                           125  moveMethod
+0000058E  6000 017C                126      BRA     DONE
+00000592                           127  
+00000592                           128  addOpCode
+00000592  BA3C 000D                129      CMP.B   #13,D5
+00000596  6600 0174                130      BNE     DONE     
+0000059A                           131  
+0000059A                           132  addMethod
+0000059A  43F9 00000718            133      LEA     outputADD,A1
+000005A0  103C 000E                134      MOVE.B  #14,D0
+000005A4  4E4F                     135      TRAP    #15
+000005A6                           136      
+000005A6  4EB9 000005EC            137      JSR     dotOpMode           *Checks if it's a byte,word, or long
+000005AC                           138      
+000005AC  BC3C 0001                139      CMP.B   #1,D6
+000005B0  6700 001E                140      BEQ     altOrder   
+000005B4                           141      
+000005B4  4EB9 00000652            142      JSR     sourceEA            *outputs what the source is
+000005BA                           143      
+000005BA  43F9 00000731            144      LEA     outputComma,A1
+000005C0  103C 000E                145      MOVE.B  #14,D0
+000005C4  4E4F                     146      TRAP    #15
+000005C6                           147      
+000005C6  4EB9 000006E6            148      JSR     destinationEA       *outputs what the destination is
+000005CC                           149      
+000005CC  6000 013E                150      BRA     DONE
+000005D0                           151      
+000005D0                           152  altOrder
+000005D0  4EB9 000006E6            153      JSR     destinationEA
+000005D6                           154      
+000005D6  43F9 00000731            155      LEA     outputComma,A1
+000005DC  103C 000E                156      MOVE.B  #14,D0
+000005E0  4E4F                     157      TRAP    #15
+000005E2                           158      
+000005E2  4EB9 00000652            159      JSR     sourceEA
+000005E8  6000 0122                160      BRA     DONE
+000005EC                           161  
+000005EC                           162  dotOpMode
+000005EC  45F9 00000716            163      LEA     addCode,A2
+000005F2  3612                     164      MOVE.W  (A2),D3
+000005F4  143C 000A                165      MOVE.B  #10,D2
+000005F8                           166      
+000005F8  E57B                     167      ROL.W   D2,D3
+000005FA  C6BC 00000007            168      AND.L   #$00000007,D3
+00000600                           169      
+00000600  B63C 0003                170      CMP.B   #3,D3
+00000604  6E00 0006                171      BGT     altOpMode
+00000608                           172      
+00000608  6000 000E                173      BRA     byteOpMode    
+0000060C                           174  
+0000060C                           175  altOpMode                       *Dn is the source
+0000060C  1C3C 0001                176      MOVE.B  #1,D6
+00000610  C63C 0003                177      AND.B   #$3,D3
+00000614  6000 0002                178      BRA     byteOpMode
+00000618                           179      
+00000618                           180  byteOpMode
+00000618  B63C 0000                181      CMP.B   #0,D3
+0000061C  6600 0010                182      BNE     wordOpMode
+00000620                           183      
+00000620  43F9 0000071D            184      LEA     outputByte,A1
+00000626  103C 000E                185      MOVE.B  #14,D0
+0000062A  4E4F                     186      TRAP    #15
+0000062C  4E75                     187      RTS
+0000062E                           188      
+0000062E                           189  wordOpMode
+0000062E  B63C 0001                190      CMP.B   #1,D3
+00000632  6600 0010                191      BNE     longOpMode
+00000636                           192      
+00000636  43F9 00000720            193      LEA     outputWord,A1
+0000063C  103C 000E                194      MOVE.B  #14,D0
+00000640  4E4F                     195      TRAP    #15
+00000642  4E75                     196      RTS
+00000644                           197      
+00000644                           198  longOpMode
+00000644  43F9 00000723            199      LEA     outputLong,A1
+0000064A  103C 000E                200      MOVE.B  #14,D0
+0000064E  4E4F                     201      TRAP    #15
+00000650  4E75                     202      RTS
+00000652                           203      
+00000652                           204      
+00000652                           205  sourceEA
+00000652  45F9 00000716            206      LEA     addCode,A2
+00000658  3612                     207      MOVE.W  (A2),D3
+0000065A  3403                     208      MOVE.W  D3,D2
+0000065C                           209      
+0000065C  E65A                     210      ROR.W   #3,D2
+0000065E  C4BC 00000007            211      AND.L   #$00000007,D2       *D2 has Mode
+00000664                           212      
+00000664                           213  
+00000664  C6BC 00000007            214      AND.L   #$00000007,D3       *D3 has Register
+0000066A                           215  
+0000066A                           216      
+0000066A                           217  DnMode                          *Mode is a Data Register
+0000066A  B43C 0000                218      CMP.B   #0,D2
+0000066E  6600 0018                219      BNE     AnMode
+00000672                           220      
+00000672  43F9 0000072D            221      LEA     outputDn,A1
+00000678  103C 000E                222      MOVE.B  #14,D0
+0000067C  4E4F                     223      TRAP    #15
+0000067E                           224  
+0000067E  1203                     225      MOVE.B  D3,D1
+00000680  103C 0003                226      MOVE.B  #3,D0
+00000684  4E4F                     227      TRAP    #15
+00000686                           228      
+00000686  4E75                     229      RTS
+00000688                           230    
+00000688                           231  AnMode                          *Mode is an Address Register
+00000688  B43C 0001                232      CMP.B   #1,D2
+0000068C  6600 0018                233      BNE     deRefAnMode
+00000690                           234      
+00000690  43F9 0000072B            235      LEA     outputAn,A1
+00000696  103C 000E                236      MOVE.B  #14,D0
+0000069A  4E4F                     237      TRAP    #15
+0000069C                           238      
+0000069C  1203                     239      MOVE.B  D3,D1
+0000069E  103C 0003                240      MOVE.B  #3,D0
+000006A2  4E4F                     241      TRAP    #15
+000006A4                           242      
+000006A4  4E75                     243      RTS
+000006A6                           244      
+000006A6                           245  deRefAnMode
+000006A6  B43C 0002                246      CMP.B   #2,D2
+000006AA  6600 0024                247      BNE     immidiateData
+000006AE                           248      
+000006AE  43F9 00000726            249      LEA     outputdeRefAn1,A1
+000006B4  103C 000E                250      MOVE.B  #14,D0
+000006B8  4E4F                     251      TRAP    #15
+000006BA                           252      
+000006BA  1203                     253      MOVE.B  D3,D1
+000006BC  103C 0003                254      MOVE.B  #3,D0
+000006C0  4E4F                     255      TRAP    #15
+000006C2                           256      
+000006C2  43F9 00000729            257      LEA     outputdeRefAn2,A1
+000006C8  103C 000E                258      MOVE.B  #14,D0
+000006CC  4E4F                     259      TRAP    #15
+000006CE                           260      
+000006CE  4E75                     261      RTS
+000006D0                           262      
+000006D0                           263  immidiateData                   *Mode is an #<data>
+000006D0  43F9 0000072F            264      LEA     outputPound,A1
+000006D6  103C 000E                265      MOVE.B  #14,D0
+000006DA  4E4F                     266      TRAP    #15
+000006DC                           267      
+000006DC  1203                     268      MOVE.B  D3,D1
+000006DE  103C 0003                269      MOVE.B  #3,D0
+000006E2  4E4F                     270      TRAP    #15
+000006E4                           271      
+000006E4  4E75                     272      RTS
+000006E6                           273     
+000006E6                           274  destinationEA
+000006E6  45F9 00000716            275      LEA     addCode,A2
+000006EC  3612                     276      MOVE.W  (A2),D3
+000006EE                           277      
+000006EE  EF5B                     278      ROL.W   #7,D3
+000006F0  C6BC 00000007            279      AND.L   #$00000007,D3
+000006F6                           280      
+000006F6                           281  DnRegister
+000006F6  43F9 0000072D            282      LEA     outputDn,A1
+000006FC  103C 000E                283      MOVE.B  #14,D0
+00000700  4E4F                     284      TRAP    #15
+00000702                           285      
+00000702  1203                     286      MOVE.B  D3,D1
+00000704  103C 0003                287      MOVE.B  #3,D0
+00000708  4E4F                     288      TRAP    #15
+0000070A                           289      
+0000070A  4E75                     290      RTS
+0000070C                           291      
+0000070C                           292  DONE
+0000070C  BDCD                     293      CMP.L   A5,A6
+0000070E  6E00 FE5A                294      BGT     ADD_Checker
+00000712                           295      
+00000712  FFFF FFFF                296      SIMHALT             ; halt simulator
+00000716                           297      
+00000716                           298      
+00000716= 0000                     299  addCode             DC.W    $0000
+00000718= 41 44 44 2E 00           300  outputADD           DC.B    'ADD.',0
+0000071D= 42 20 00                 301  outputByte          DC.B    'B ',0
+00000720= 57 20 00                 302  outputWord          DC.B    'W ',0
+00000723= 4C 20 00                 303  outputLong          DC.B    'L ',0
+00000726= 28 41 00                 304  outputdeRefAn1      DC.B    '(A',0
+00000729= 29 00                    305  outputdeRefAn2      DC.B    ')',0
+0000072B= 41 00                    306  outputAn            DC.B    'A',0
+0000072D= 44 00                    307  outputDn            DC.B    'D',0
+0000072F= 23 00                    308  outputPound         DC.B    '#',0
+00000731= 2C 00                    309  outputComma         DC.B    ',',0
+00000733                           310  
+00000733                           311  
+00000733                           312  
+00000733                           313                  END         $400   
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ADDCODE             716
+ADDMETHOD           59A
+ADDOPCODE           592
+ADDR_VAL_TEMP       564
+ADD_CHECKER         56A
+ADD_MASK            F
+ALTOPMODE           60C
+ALTORDER            5D0
+ANMODE              688
+ASCII_MASK          FF
+ASCII_VAL_END       562
+ASCII_VAL_START     560
+BYTEOPMODE          618
+CR                  D
+DEREFANMODE         6A6
+DESTINATIONEA       6E6
+DNMODE              66A
+DNREGISTER          6F6
+DONE                70C
+DOTOPMODE           5EC
+END_ADDR_MSG        52F
+END_VAL             568
+GET_ADDR            48E
+IMMIDIATEDATA       6D0
+LF                  A
+LONGOPMODE          644
+MOVEMETHOD          58E
+MOVEOPCODE          586
+OUTPUTADD           718
+OUTPUTAN            72B
+OUTPUTBYTE          71D
+OUTPUTCOMMA         731
+OUTPUTDEREFAN1      726
+OUTPUTDEREFAN2      729
+OUTPUTDN            72D
+OUTPUTLONG          723
+OUTPUTPOUND         72F
+OUTPUTWORD          720
+RET_SA              502
+SOURCEEA            652
+STACK               B000
+START_ADDR_MSG      504
+STRIP_ASCII         4DE
+ST_VAL              566
+SUB30               4FE
+SUB37               4F6
+WORDOPMODE          62E

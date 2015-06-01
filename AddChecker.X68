@@ -4,23 +4,21 @@
 * Date       :
 * Description:
 *-----------------------------------------------------------
-counter EQU 0
-
     ORG    $1000
 START:                  ; first instruction of program
 
 * Put program code here
-            MOVE.B  #1,D0
-                 
-
+        
+        ADD.W      D0, D3
+        ADD.W      D3, D4
+        ADD.W      D2, D5
+        ADD.B      #1, D0
 
     SIMHALT             ; halt simulator
-
+        
 * Put variables and constants here
 
     END    START        ; last line of source
-
-
 
 *~Font name~Courier New~
 *~Font size~10~

@@ -1,0 +1,57 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.15.02
+Created On: 5/26/2015 2:38:50 AM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :
+00000000                             3  * Written by :
+00000000                             4  * Date       :
+00000000                             5  * Description:
+00000000                             6  *-----------------------------------------------------------
+00001000                             7      ORG    $1000
+00001000                             8  START:                  ; first instruction of program
+00001000                             9  
+00001000                            10  * Put program code here
+00001000                            11          
+00001000  9200                      12          SUB.B   D0,D1          *works
+00001002  9843                      13          SUB.W   D3,D4          *works
+00001004  9C85                      14          SUB.L   D5,D6          *works
+00001006  9010                      15          SUB.B   (A0),D0        *works
+00001008  9115                      16          SUB.B    D0,(A5)       *works
+0000100A  9656                      17          SUB.W   (A6),D3        *works
+0000100C  9B94                      18          SUB.L    D5,(A4)       *works
+0000100E  5142                      19          SUBQ.W    #8,D2        *works
+00001010                            20          
+00001010  D200                      21          ADD.B   D0,D1
+00001012  D642                      22          ADD.W   D2,D3
+00001014  DA84                      23          ADD.L   D4,D5
+00001016  D611                      24          ADD.B   (A1),D3
+00001018                            25          
+00001018  D4C9                      26          ADDA.W  A1,A2
+0000101A  DBCB                      27          ADDA.L  A3,A5
+0000101C                            28          
+0000101C                            29          
+0000101C                            30          *DIVS.W    D1,D0        *works
+0000101C                            31          *DIVS.W    (A0),D4      *works
+0000101C                            32          *DIVS.W    #10,D4       *does not work
+0000101C                            33          *ADD.B     #10,D0       *does not work
+0000101C                            34          *DIVS.L      $00000000,D1:D2 *dont know the syntax
+0000101C  43D2                      35          LEA     (A2),A1
+0000101E                            36  
+0000101E  FFFF FFFF                 37      SIMHALT             ; halt simulator
+00001022                            38  
+00001022                            39  * Put variables and constants here
+00001022                            40  
+00001022= 48 61 69 00               41  MSG     DC.B    'Hai',0
+00001026                            42  
+00001026                            43      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+MSG                 1022
+START               1000
